@@ -1,16 +1,13 @@
-use dayone::dayone;
-use daytwo::daytwo;
+use dayone::distances;
+use dayone::similarities;
 
-mod list;
 mod dayone;
 mod daytwo;
 
 fn main() {
     println!("Advent of Code 2024");
 
-    let dayone_result = dayone("src/list");
-    println!("Dayone result: {:?}", dayone_result);
+    println!("Day one distances result: {:?}", distances("src/list"));
 
-    let daytwo_result = daytwo("src/list");
-    println!("Daytwo result: {:?}", daytwo_result);
+    println!("Day one similarities result: {:?}", similarities("src/list"));
 }
