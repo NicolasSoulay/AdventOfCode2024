@@ -70,96 +70,62 @@ pub enum Status{
 
 #[derive(Debug)]
 pub struct ReportLine {
-    pub damping: Option<usize>,
     pub levels: Vec<i32>,
     pub order: Order,
+    pub damped_index: usize,
+    pub damped_levels: Vec<i32>,
+    pub damping: bool,
     pub status: Status,
 }
 
 impl ReportLine {
     pub fn new(levels: Vec<i32>) -> Self {
-        let mut status = Status::Unknown;
-        let mut damping = None;
+        Self {
+            levels,
+            order: Order::Increasing,
+            damped_index: 0,
+            damped_levels: vec![],
+            damping: false,
+            status: Status::Unknown,
+        }
+    }
+
+    pub fn verify(&mut self) {
+        
+        let mut levels = &self.levels;
+        if self.damping{
+            levels = &self.damped_levels;
+        }
 
         if levels[0] == levels[1] {
-            damping = Some(0);
-            if levels[0] == levels[2] {
-                status = Status::Unsafe;
-            }
+            return
         }
-        let order = if levels[0] < levels[1] {
+        self.order = if levels[0] < levels[1] {
             Order::Increasing
         } else {
             Order::Decreasing
         };
 
-        Self {
-            damping,
-            levels,
-            order,
-            status,
-        }
-    }
-
-    pub fn verify(&mut self) {
-        match self.damping {
-            None => {
-                for i in 1..self.levels.len() {
-                    let preceding = self.levels[i-1];
-                    let current = self.levels[i];
-                    match self.order {
-                        Order::Increasing => {
-                            if current <= preceding {
-                                self.damping = Some(i);
-                                break
-                            }
-                        },
-                        Order::Decreasing => {
-                            if current >= preceding {
-                                self.damping = Some(i);
-                                break
-                            }
-                        },
+        for i in 1..levels.len() {
+            let preceding = levels[i-1];
+            let current = levels[i];
+            match self.order {
+                Order::Increasing => {
+                    if current <= preceding {
+                        return
                     }
-
-                    if (current - preceding).abs() > 3  {
-                        self.damping = Some(i);
-                        break;
+                },
+                Order::Decreasing => {
+                    if current >= preceding {
+                        return
                     }
-                }
-                if self.damping.is_none() {
-                    self.status = Status::Safe;
-                }
+                },
             }
-            Some(index) => {
-                self.levels.remove(index);
-
-                for i in 1..self.levels.len() {
-                    let preceding = self.levels[i-1];
-                    let current = self.levels[i];
-                    match self.order {
-                        Order::Increasing => {
-                            if current <= preceding {
-                                self.status = Status::Unsafe;
-                                return;
-                            }
-                        },
-                        Order::Decreasing => {
-                            if current >= preceding {
-                                self.status = Status::Unsafe;
-                                return;
-                            }
-                        },
-                    }
-
-                    if (current - preceding).abs() > 3  {
-                        self.status = Status::Unsafe;
-                        return;
-                    }
-                }
-                self.status = Status::Safe;
+            if (current - preceding).abs() > 3  {
+                return;
             }
         }
+        self.status = Status::Safe;
     }
 }
 
@@ -175,16 +141,31 @@ pub fn safety_report_dampen(path: &str) -> i32 {
         let mut report = ReportLine::new(levels);
 
         while report.status == Status::Unknown{
-            println!("{:?}", report);
+            report.verify();
+            // println!("{:?}", report);
             match report.status {
                 Status::Safe => {
                     result += 1;
                 },
-                Status::Unsafe => {},
-                Status::Unknown => { report.verify()},
+                Status::Unknown => {
+                    if !report.damping {
+                        report.damping = true;
+                    }
+                    if report.damped_index == report.levels.len() {
+                        report.status = Status::Unsafe;
+                        println!("{:?}", report);
+                        continue
+                    }else{
+                        report.damped_levels = report.levels.clone();
+                        report.damped_levels.remove(report.damped_index);
+                        report.damped_index += 1;
+                    }
+                },
+                Status::Unsafe => {
+                    println!("{:?}", report);
+                },
             }
         }
     }
-
     result
 }
