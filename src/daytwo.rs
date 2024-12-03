@@ -153,7 +153,7 @@ pub fn safety_report_dampen(path: &str) -> i32 {
                     }
                     if report.damped_index == report.levels.len() {
                         report.status = Status::Unsafe;
-                        println!("{:?}", report);
+                        // println!("{:?}", report);
                         continue
                     }else{
                         report.damped_levels = report.levels.clone();
@@ -162,7 +162,7 @@ pub fn safety_report_dampen(path: &str) -> i32 {
                     }
                 },
                 Status::Unsafe => {
-                    println!("{:?}", report);
+                    // println!("{:?}", report);
                 },
             }
         }
