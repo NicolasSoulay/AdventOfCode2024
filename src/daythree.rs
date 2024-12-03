@@ -37,6 +37,7 @@ pub fn uncorrupt_with_instructions(input_path: &str) -> i32 {
 
     for cap in re_begin.captures_iter(&compacted_text) {
         enabled_texts.push(cap[1].to_string());
+        println!("{:?}",cap);
     }
     compacted_text = compacted_text.replace(&enabled_texts[0], "");
     for cap in re_enabled.captures_iter(&compacted_text) {
