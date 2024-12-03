@@ -1,5 +1,5 @@
 #[derive(Debug)]
-enum Order{
+pub enum Order{
     Increasing,
     Decreasing,
 }
@@ -155,11 +155,11 @@ pub fn safety_report_dampen(path: &str) -> i32 {
                         report.status = Status::Unsafe;
                         // println!("{:?}", report);
                         continue
-                    }else{
-                        report.damped_levels = report.levels.clone();
-                        report.damped_levels.remove(report.damped_index);
-                        report.damped_index += 1;
                     }
+                    report.damped_levels = report.levels.clone();
+                    report.damped_levels.remove(report.damped_index);
+                    report.damped_index += 1;
+                    
                 },
                 Status::Unsafe => {
                     // println!("{:?}", report);
